@@ -1,0 +1,202 @@
+<html>
+<head>
+<title>RealFinalProject.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080; font-style: italic;}
+.s1 { color: #000000;}
+.s2 { color: #000080; font-weight: bold;}
+.s3 { color: #008000; font-weight: bold;}
+.s4 { color: #0000ff;}
+</style>
+</head>
+<body bgcolor="#ffffff">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#c0c0c0" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+RealFinalProject.py</font>
+</center></td></tr></table>
+<pre><span class="s0"># We import the GUI</span>
+<span class="s2">import </span>tkinter <span class="s2">as </span>tk
+<span class="s2">from </span>tkinter <span class="s2">import </span>ttk, messagebox, simpledialog
+<span class="s2">from </span>PIL <span class="s2">import </span>ImageTk, Image
+
+<span class="s0"># We import the data manipulation library</span>
+<span class="s2">import </span>pandas <span class="s2">as </span>pd
+
+<span class="s0"># Import the signal-simulating library</span>
+<span class="s2">import </span>neurokit2 <span class="s2">as </span>nk  <span class="s0"># Load the package</span>
+
+<span class="s0"># Import the plotter</span>
+<span class="s2">import </span>matplotlib.pyplot <span class="s2">as </span>plt
+
+<span class="s0"># Import the random generating numbers</span>
+<span class="s2">from </span>random <span class="s2">import </span>*
+
+
+<span class="s0"># Function to remove the present widgets when changing profiles and not leaving behind previous charts</span>
+<span class="s2">def </span>reset_buttons():
+    <span class="s2">for </span>widgets <span class="s2">in </span>root.winfo_children():
+        widgets.destroy()
+    add = ttk.Button(root, text=<span class="s3">'+'</span>, command=<span class="s2">lambda</span>: add_patient())
+    add.place(x=<span class="s4">640</span>, y=<span class="s4">130</span>, width=<span class="s4">50</span>, height=<span class="s4">30</span>)
+    remove = ttk.Button(root, text=<span class="s3">'-'</span>, command=<span class="s2">lambda</span>: remove_patient())
+    remove.place(x=<span class="s4">700</span>, y=<span class="s4">130</span>, width=<span class="s4">50</span>, height=<span class="s4">30</span>)
+
+    button_list()
+
+
+<span class="s0"># Generation and print of the profile's data </span>
+<span class="s2">def </span>show_data(selector):
+    <span class="s2">if </span>selector:
+        <span class="s0"># Table</span>
+        table(selector)
+        ecg(selector)
+        eeg(selector)
+        rsp(selector)
+    <span class="s0"># In case the profile is empty</span>
+    <span class="s2">else</span>:
+        reset_buttons()
+
+
+<span class="s0"># Function create a new profile</span>
+<span class="s2">def </span>add_patient():
+    answer = simpledialog.askstring(<span class="s3">'Input'</span>, <span class="s3">'Full name:'</span>,
+                                    parent=root)
+    <span class="s2">if </span>isinstance(answer, str):
+        file_new = messagebox.askyesno(message=<span class="s3">'Do yo want to create a new data file?'</span>, title=<span class="s3">'New File'</span>)
+        <span class="s2">if </span>file_new:
+            patient_data = pd.DataFrame([[randint(<span class="s4">45</span>, <span class="s4">120</span>), randint(<span class="s4">100</span>, <span class="s4">180</span>), randint(<span class="s4">100</span>, <span class="s4">180</span>), randint(<span class="s4">45</span>, <span class="s4">120</span>)],
+                                         [randint(<span class="s4">20</span>, <span class="s4">70</span>), randint(<span class="s4">20</span>, <span class="s4">70</span>), randint(<span class="s4">20</span>, <span class="s4">70</span>), randint(<span class="s4">20</span>, <span class="s4">70</span>)],
+                                         [randint(<span class="s4">35</span>, <span class="s4">40</span>), randint(<span class="s4">36</span>, <span class="s4">41</span>), randint(<span class="s4">37</span>, <span class="s4">42</span>), randint(<span class="s4">37</span>, <span class="s4">42</span>)]],
+                                        index=[<span class="s3">'BPM'</span>, <span class="s3">'Respiratory rate'</span>, <span class="s3">'Temperature(ºC)'</span>],
+                                        columns=[<span class="s3">'00:00'</span>, <span class="s3">'06:00'</span>, <span class="s3">'12:00'</span>, <span class="s3">'18:00'</span>])
+            file_name = <span class="s3">f'</span><span class="s2">{</span>answer<span class="s2">}</span><span class="s3">.xlsx'</span>
+            patient_data.to_excel(file_name, sheet_name=<span class="s3">'Day 1'</span>)
+        patients.append(answer)
+        reset_buttons()
+        show_data(answer)
+
+
+<span class="s0"># Function defined to allow the removal of a profile</span>
+<span class="s2">def </span>remove_patient():
+    <span class="s2">try</span>:
+        patients.pop(<span class="s4">0</span>)
+    <span class="s2">except</span>:
+        <span class="s0"># Error message in case the profile no longer exists</span>
+        messagebox.showerror(<span class="s3">'Not found'</span>, <span class="s3">'Error: The file you want to delete it no longer exist!'</span>)
+    <span class="s2">else</span>:
+        <span class="s0"># Confirmation message</span>
+        messagebox.showinfo(message=<span class="s3">&quot;Patient removed successfully&quot;</span>, title=<span class="s3">&quot;Removal complete&quot;</span>)
+        reset_buttons()
+
+
+<span class="s0"># Function for the option menu where the profiles can be selected</span>
+<span class="s2">def </span>button_list():
+    variable = tk.StringVar(root)
+    variable.set(patients[<span class="s4">0</span>])  <span class="s0"># default value</span>
+    w = ttk.OptionMenu(root, variable, *patients, command=show_data)
+    w.place(x=<span class="s4">640</span>, y=<span class="s4">100</span>, height=<span class="s4">20</span>, width=<span class="s4">140</span>)
+
+
+<span class="s0"># Function to adapt .xlsx format in order to be represented by Tkinter correctly</span>
+<span class="s2">def </span>table(name):
+    <span class="s2">try</span>:
+        data_file = pd.read_excel(<span class="s3">f'</span><span class="s2">{</span>name<span class="s2">}</span><span class="s3">.xlsx'</span>)
+    <span class="s2">except</span>:
+        messagebox.showerror(<span class="s3">'File Error'</span>, <span class="s3">f'Error: There is no file named</span><span class="s2">{</span>name<span class="s2">}</span><span class="s3">.xlsx!'</span>)
+    <span class="s2">else</span>:
+        data_file.rename(columns={<span class="s3">'Unnamed: 0'</span>: name}, inplace=<span class="s2">True</span>)
+        n_rows = data_file.shape[<span class="s4">0</span>]
+        n_cols = data_file.shape[<span class="s4">1</span>]
+
+        <span class="s0"># Extracting columns from the data and</span>
+        <span class="s0"># creating text widget with some</span>
+        <span class="s0"># background color</span>
+        column_names = data_file.columns
+        i = <span class="s4">0</span>
+        <span class="s2">for </span>j, col <span class="s2">in </span>enumerate(column_names):
+            text = tk.Text(root, width=<span class="s4">18</span>, height=<span class="s4">1</span>, bg=<span class="s3">&quot;#9BC2E6&quot;</span>)
+            text.grid(row=i, column=j + <span class="s4">300</span>, sticky=tk.E)
+            text.insert(tk.INSERT, col)
+
+        <span class="s0"># adding all the other rows into the grid</span>
+        <span class="s2">for </span>i <span class="s2">in </span>range(n_rows):
+            <span class="s2">for </span>j <span class="s2">in </span>range(n_cols):
+                text = tk.Text(root, width=<span class="s4">18</span>, height=<span class="s4">1</span>)
+                text.grid(row=i + <span class="s4">1</span>, column=j + <span class="s4">300</span>, sticky=tk.E)
+                text.insert(tk.INSERT, data_file.loc[i][j])
+
+
+<span class="s0"># Function to generate a simulated electrocardiogram signal resizing it and saving the graph in .png</span>
+<span class="s2">def </span>ecg(name):
+    ecg_data = nk.ecg_simulate(duration=<span class="s4">10</span>, method=<span class="s3">&quot;simple&quot;</span>, random_state=randint(<span class="s4">0</span>, <span class="s4">1000</span>))
+    plt.xlabel(<span class="s3">'Time (ms)'</span>)
+    plt.ylabel(<span class="s3">'Voltage (mV)'</span>)
+    plt.plot(ecg_data)
+    plt.savefig(<span class="s3">f'</span><span class="s2">{</span>name<span class="s2">} </span><span class="s3">ecg.png'</span>)
+    plt.show()
+    img = Image.open(<span class="s3">f'</span><span class="s2">{</span>name<span class="s2">} </span><span class="s3">ecg.png'</span>)
+    img = img.resize((<span class="s4">300</span>, <span class="s4">300</span>))
+    img.save(<span class="s3">f'</span><span class="s2">{</span>name<span class="s2">} </span><span class="s3">ecg.png'</span>)
+    img = ImageTk.PhotoImage(Image.open(<span class="s3">f'</span><span class="s2">{</span>name<span class="s2">} </span><span class="s3">ecg.png'</span>))
+    ecg_graph = tk.Label(root, image=img)
+    ecg_graph.photo = img
+    ecg_graph.place(x=<span class="s4">10</span>, y=<span class="s4">100</span>, height=<span class="s4">300</span>, width=<span class="s4">300</span>)
+
+
+<span class="s0"># Function to generate a simulated electroencephalogram signal resizing it and saving the graph in .png</span>
+<span class="s2">def </span>eeg(name):
+    eeg_data = nk.eeg_simulate(duration=<span class="s4">1</span>, sampling_rate=<span class="s4">500</span>, noise=<span class="s4">0.2</span>, random_state=randint(<span class="s4">0</span>, <span class="s4">1000</span>))
+    plt.xlabel(<span class="s3">'Frequency (Hz)'</span>)
+    plt.ylabel(<span class="s3">'Spectrum'</span>)
+    plt.plot(eeg_data)
+    plt.savefig(<span class="s3">f'</span><span class="s2">{</span>name<span class="s2">} </span><span class="s3">eeg.png'</span>)
+    plt.show()
+    img = Image.open(<span class="s3">f'</span><span class="s2">{</span>name<span class="s2">} </span><span class="s3">eeg.png'</span>)
+    img = img.resize((<span class="s4">300</span>, <span class="s4">300</span>))
+    img.save(<span class="s3">f'</span><span class="s2">{</span>name<span class="s2">} </span><span class="s3">eeg.png'</span>)
+    img2 = ImageTk.PhotoImage(Image.open(<span class="s3">f'</span><span class="s2">{</span>name<span class="s2">} </span><span class="s3">eeg.png'</span>))
+    eeg_graph = tk.Label(root, image=img2)
+    eeg_graph.photo = img2
+    eeg_graph.place(x=<span class="s4">320</span>, y=<span class="s4">100</span>, height=<span class="s4">300</span>, width=<span class="s4">300</span>)
+
+
+<span class="s0"># Function to generate a simulated respiratory signal resizing it and saving the graph in .png</span>
+<span class="s2">def </span>rsp(name):
+    rsp_data = nk.rsp_simulate(duration=<span class="s4">60</span>, sampling_rate=<span class="s4">250</span>, respiratory_rate=<span class="s4">15</span>, random_state=randint(<span class="s4">0</span>, <span class="s4">1000</span>))
+    plt.xlabel(<span class="s3">'Time (ms)'</span>)
+    plt.ylabel(<span class="s3">'Volume (1/100)'</span>)
+    plt.plot(rsp_data)
+    plt.savefig(<span class="s3">f'</span><span class="s2">{</span>name<span class="s2">} </span><span class="s3">rsp.png'</span>)
+    plt.show()
+    img = Image.open(<span class="s3">f'</span><span class="s2">{</span>name<span class="s2">} </span><span class="s3">rsp.png'</span>)
+    img = img.resize((<span class="s4">620</span>, <span class="s4">250</span>))
+    img.save(<span class="s3">f'</span><span class="s2">{</span>name<span class="s2">} </span><span class="s3">rsp.png'</span>)
+    img3 = ImageTk.PhotoImage(Image.open(<span class="s3">f'</span><span class="s2">{</span>name<span class="s2">} </span><span class="s3">rsp.png'</span>))
+    rsp_graph = tk.Label(root, image=img3)
+    rsp_graph.photo = img3
+    rsp_graph.place(x=<span class="s4">10</span>, y=<span class="s4">410</span>, height=<span class="s4">250</span>, width=<span class="s4">620</span>)
+
+
+<span class="s0"># Define the main window, name it and give it a size</span>
+root = tk.Tk()
+root.title(<span class="s3">&quot;Neonate Monitoring System&quot;</span>)
+root.geometry(<span class="s3">&quot;820x680&quot;</span>)
+
+<span class="s0"># List of patients and list of selectors</span>
+patients = [<span class="s3">''</span>]
+btn = []
+reset_buttons()
+
+<span class="s0"># Insert the window icons</span>
+icon16 = tk.PhotoImage(file=<span class="s3">&quot;SimpleLogo.png&quot;</span>)
+icon32 = tk.PhotoImage(file=<span class="s3">&quot;SimpleLogo.png&quot;</span>)
+root.iconphoto(<span class="s2">False</span>, icon32, icon16)
+
+<span class="s0"># Set a background color</span>
+root[<span class="s3">'bg'</span>] = <span class="s3">'#DEF9FF'</span>
+root.mainloop()
+</pre>
+</body>
+</html>
